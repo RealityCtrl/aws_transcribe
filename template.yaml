@@ -1,0 +1,137 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+    AWS Serverless Application
+
+    Sample SAM Template for AWS Serverless Application
+
+Parameters:
+  QName:
+    Description: name of SQS queue to be polled
+    Type: String
+  InputS3Bucket:
+    Description: S3 bucket that notification are coming from for permissions
+    Type: String
+  FName:
+    Description: Lambda function name
+    Type: String
+  CodeBucket:
+    Description: S3 bucket name with code for function
+    Type: String
+  CodeFile:
+    Description: S3 key of zip file of code
+    Type: String
+  Region:
+    Description: region of queue
+    Type: String
+  Account:
+    Description: account number of sqs queue
+    Type: String
+  NumMessages:
+    Description: Batch size of messages to retrieve
+    Type: Number
+    Default: 10
+  MessagePollTime:
+    Description: Time to poll for messages >1 is long polling
+    Type: Number
+    Default: 20
+    MinValue: 0
+    MaxValue: 20
+  Memory:
+    Description: memory allocated in MB
+    Type: Number
+    Default: 128
+    MinValue: 128
+    MaxValue: 3008
+  ExcTime:
+    Description: Timeout for the lambda
+    Type: Number
+    Default: 3
+    MinValue: 1
+    MaxValue: 800
+  ConcurrentExecutions:
+    Description: number of reserved concurrent executions, 0 is throttled
+    Type: Number
+    Default: 1000
+    MinValue: 0
+    MaxValue: 1000
+  LambdaLayers:
+    Description: list of arns of lambda layers
+    Type: CommaDelimitedList
+
+
+Resources:
+
+  LambdaRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName: !Join ["-",[!Ref FName, "lambda","execution"]]
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: "Allow"
+            Principal:
+              Service:
+                - "lambda.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      Path: "/"
+      Policies:
+        -
+          PolicyName: !Join ["-", [!Ref InputS3Bucket, "s3-bucket-access"]]
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              -
+                Effect: "Allow"
+                Action: "s3:*"
+                Resource:
+                  - !Join [":", ["arn:aws:s3::", !Join ["", [!Ref InputS3Bucket, "/"]]]]
+                  - !Join [":", ["arn:aws:s3::", !Join ["", [!Ref InputS3Bucket, "/*"]]]]
+        -
+          PolicyName: !Join ["-", [!Ref QName, "sqs-receive"]]
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              -
+                Effect: "Allow"
+                Action: "sqs:ReceiveMessage"
+                Resource:
+                  - !Join [":", ["arn:aws:sqs", !Ref Region, !Ref Account, !Ref QName]]
+
+  PollingFunction:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      FunctionName: !Ref FName
+      Code:
+        S3Bucket: !Ref CodeBucket
+        S3Key: !Ref CodeFile
+      Handler: app.lambda_handler
+      Runtime: python3.6
+      Environment:
+        Variables:
+          endpoint: !Join ["/", [!Join [".", ["https://sqs", !Ref Region, "amazonaws", "com"]], !Ref Account ,!Ref QName]]
+          max_messages: !Ref NumMessages
+          wait_time: !Ref MessagePollTime
+      Role: !GetAtt LambdaRole.Arn
+      MemorySize: !Ref Memory
+      Timeout: !Ref ExcTime
+      ReservedConcurrentExecutions: !Ref ConcurrentExecutions
+      Layers: !Ref LambdaLayers
+
+  LayerPermission:
+    Type: "AWS::Lambda::LayerVersionPermission"
+    Properties:
+      Action: lambda:GetLayerVersion
+      LayerVersionArn: !Select [0, !Ref LambdaLayers]
+      Principal: "*"
+
+Outputs:
+
+  LambdaFunction:
+    Description: "Hello World Lambda Function ARN"
+    Value: !GetAtt PollingFunction.Arn
+
+  PollingFunctionIamRole:
+    Description: "Implicit IAM Role created for Hello World function"
+    Value: !GetAtt LambdaRole.Arn

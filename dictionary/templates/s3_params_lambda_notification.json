@@ -1,0 +1,22 @@
+[
+  {
+    "ParameterKey": "AppName",
+    "ParameterValue": "transcribevocab"
+  },
+  {
+    "ParameterKey": "Environment",
+    "ParameterValue": "sndbx"
+  },
+  {
+	"ParameterKey":"AccountID",
+	"ParameterValue":"838188513541"
+  },
+  {
+	"ParameterKey":"LambdaName",
+	"ParameterValue":"transcribe-vocab-creator-sndbx"
+  },
+  {
+	"ParameterKey":"Region",
+	"ParameterValue":"eu-west-1"
+  }
+]

@@ -1,0 +1,24 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "This template deploys a S3 Bucket"
+Parameters:
+  AppName:
+    Type: String
+  Environment:
+    Type: String
+  Region:
+    Type: String
+  AccountID:
+    Type: String
+  QueueName:
+    Type: String
+Resources:
+  MyBucket:
+    Type: AWS::S3::Bucket
+    Properties: 
+      BucketName: !Join [ "-", [ !Ref AppName, !Ref Environment ] ]
+      NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: s3:ObjectCreated:*
+            Function: arn:aws:lambda:eu-west-1:838188513541:transcribe-vocab-creator-sndbx
+            #!Join [":",["arn:aws:sqs",!Ref Region, !Ref AccountID, !Join ["-", [!Ref QueueName, !Ref Environment]]]]
+            

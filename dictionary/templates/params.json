@@ -1,0 +1,42 @@
+[
+  {
+    "ParameterKey": "Locale",
+    "ParameterValue": "en-GB"
+  },
+  {
+    "ParameterKey": "InputS3Bucket",
+    "ParameterValue": "transcribevocab-sndbx"
+  },
+  {
+    "ParameterKey": "FName",
+    "ParameterValue": "transcribe-vocab-creator-sndbx"
+  },
+  {
+    "ParameterKey": "CodeBucket",
+    "ParameterValue": "lambda-deployment-realityctrl-sndbx"
+  },
+  {
+    "ParameterKey": "CodeFile",
+    "ParameterValue": "vocab_code.zip"
+  },
+  {
+    "ParameterKey": "Region",
+    "ParameterValue": "eu-west-1"
+  },
+  {
+    "ParameterKey": "Account",
+    "ParameterValue": "838188513541"
+  },
+  {
+    "ParameterKey": "Memory",
+    "ParameterValue": "128"
+  },
+  {
+    "ParameterKey": "ExcTime",
+    "ParameterValue": "25"
+  },
+  {
+    "ParameterKey": "ConcurrentExecutions",
+    "ParameterValue": "10"
+  }
+]

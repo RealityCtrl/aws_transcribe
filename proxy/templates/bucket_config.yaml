@@ -1,0 +1,13 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "This template deploys a S3 Bucket"
+Parameters:
+  AppName:
+    Type: String
+  Environment:
+    Type: String
+
+Resources:
+  MyBucket:
+    Type: AWS::S3::Bucket
+    Properties: 
+      BucketName: !Join [ "-", [ !Ref AppName, !Ref Environment ] ]

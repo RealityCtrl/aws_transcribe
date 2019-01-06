@@ -1,0 +1,152 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+    AWS Serverless Application
+
+    Sample SAM Template for AWS Serverless Application
+
+Parameters:
+  Locale:
+    Description: locale for vocab
+    Type: String
+    AllowedValues:
+      - 'en-US'
+      - 'es-US'
+      - 'en-AU'
+      - 'fr-CA'
+      - 'en-GB'
+      - 'de-DE'
+      - 'pt-BR'
+      - 'fr-FR'
+      - 'it-IT'
+  InputS3Bucket:
+    Description: S3 bucket that notification are coming from for permissions
+    Type: String
+  FName:
+    Description: Lambda function name
+    Type: String
+  CodeBucket:
+    Description: S3 bucket name with code for function
+    Type: String
+  CodeFile:
+    Description: S3 key of zip file of code
+    Type: String
+  Region:
+    Description: region of queue
+    Type: String
+  Account:
+    Description: account number of sqs queue
+    Type: String
+  Memory:
+    Description: memory allocated in MB
+    Type: Number
+    Default: 128
+    MinValue: 128
+    MaxValue: 3008
+  ExcTime:
+    Description: Timeout for the lambda
+    Type: Number
+    Default: 3
+    MinValue: 1
+    MaxValue: 800
+  ConcurrentExecutions:
+    Description: number of reserved concurrent executions, 0 is throttled
+    Type: Number
+    Default: 1000
+    MinValue: 0
+    MaxValue: 1000
+  VocabName:
+    Description: Name for custom vocab
+    Type: String
+    Default: ''
+  SpeakerDetection:
+    Description: Is speaker detection needed
+    Type: String
+    Default: 'False'
+    AllowedValues:
+      - 'True'
+      - 'False'
+  ChannelSeperation:
+    Description: Is speaker detection needed
+    Type: String
+    Default: 'False'
+    AllowedValues:
+      - 'True'
+      - 'False'
+
+Resources:
+
+  LambdaRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName: !Join ["-",[!Ref FName, "lambda","execution"]]
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: "Allow"
+            Principal:
+              Service:
+                - "lambda.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      Path: "/"
+      Policies:
+        -
+          PolicyName: !Join ["-", [!Ref InputS3Bucket, "s3-bucket-access"]]
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              -
+                Effect: "Allow"
+                Action: "s3:*"
+                Resource:
+                  - !Join [":", ["arn:aws:s3::", !Join ["", [!Ref InputS3Bucket, "/"]]]]
+                  - !Join [":", ["arn:aws:s3::", !Join ["", [!Ref InputS3Bucket, "/*"]]]]
+        -
+          PolicyName: "Transcribe-vocab-creator"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              -
+                Effect: "Allow"
+                Action:  "transcribe:*"
+                Resource:
+                  - "*"
+
+  VocabFunction:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      FunctionName: !Ref FName
+      Code:
+        S3Bucket: !Ref CodeBucket
+        S3Key: !Ref CodeFile
+      Handler: lambda_handler.lambda_handler
+      Runtime: python3.6
+      Environment:
+        Variables:
+          vocab: !Ref VocabName
+          speakerdetection: !Ref SpeakerDetection
+          channelseperation: !Ref ChannelSeperation
+      Role: !GetAtt LambdaRole.Arn
+      MemorySize: !Ref Memory
+      Timeout: !Ref ExcTime
+      ReservedConcurrentExecutions: !Ref ConcurrentExecutions
+
+  VocabNotificationPermission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !GetAtt VocabFunction.Arn
+      Principal: "s3.amazonaws.com"
+      SourceAccount: !Ref Account
+      SourceArn: !Join [":", ["arn:aws:s3::", !Ref InputS3Bucket]]
+
+Outputs:
+
+  LambdaFunction:
+    Description: "Hello World Lambda Function ARN"
+    Value: !GetAtt VocabFunction.Arn
+
+  PollingFunctionIamRole:
+    Description: "Implicit IAM Role created for Hello World function"
+    Value: !GetAtt LambdaRole.Arn

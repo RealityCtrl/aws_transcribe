@@ -1,0 +1,10 @@
+[
+  {
+    "ParameterKey": "AppName",
+    "ParameterValue": "transcribe-input"
+  },
+  {
+    "ParameterKey": "Environment",
+    "ParameterValue": "sndbx"
+  }
+]
