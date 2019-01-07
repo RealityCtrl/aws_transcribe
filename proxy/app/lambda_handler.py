@@ -5,6 +5,8 @@ from app import Vocab
 import boto3
 import botocore
 import os
+from transcription_helper import Helper
+from transcribe_app import Transcribe
 
 transcribe_client = boto3.client('transcribe')
 s3_client = boto3.client("s3",
@@ -18,7 +20,7 @@ output_bucket = os.environ['output']
 
 def lambda_handler(event, context):
     speakers = 0
-    if max_speakers != "":
+    if max_speakers.isnumeric():
         speakers = int(max_speakers)
     config = {
         'output': output_bucket,
@@ -27,15 +29,15 @@ def lambda_handler(event, context):
         'ChannelIdentification': channel_ID
 
     }
-    trans_helper = Transcribe(transcribe_client,config)
-    vocab_creator = Vocab(trans_helper, object_helper, event)
+    trans_helper = Helper(transcribe_client,config)
+    trans_creator = Transcribe(trans_helper, event)
     try:
-        response_body = vocab_creator.create_vocab()
+        trans_creator.create_transcription()
     except Exception as e:
         # Send some context about this error to Lambda Logs
         print(e)
         raise e
     return {
         "statusCode": 200,
-        "body": json.dumps(response_body)
+        "body": json.dumps("Transcription submitted")
     }

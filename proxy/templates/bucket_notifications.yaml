@@ -18,7 +18,7 @@ Resources:
       BucketName: !Join [ "-", [ !Ref AppName, !Ref Environment ] ]
       NotificationConfiguration:
         LambdaConfigurations:
-          - Event: s3:ObjectCreated:*
+          - Event: s3:ObjectCreated:Put
             Function: arn:aws:lambda:eu-west-1:838188513541:transcribe-vocab-creator-sndbx
             Filter:
               S3Key:

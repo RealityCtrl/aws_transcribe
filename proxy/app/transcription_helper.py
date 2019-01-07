@@ -1,6 +1,7 @@
 import time
 
-class Transcribe:
+
+class Helper:
 
     COMPLETE_STATE = 'READY'
     PENDING_STATE = 'PENDING'
