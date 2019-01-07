@@ -20,5 +20,17 @@ Resources:
         LambdaConfigurations:
           - Event: s3:ObjectCreated:*
             Function: arn:aws:lambda:eu-west-1:838188513541:transcribe-vocab-creator-sndbx
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: mp4-suffix
+                    Value: .mp4
+                  - Name: mp3-suffix
+                    Value: .mp3
+                  - Name: wav-suffix
+                    Value: .wav
+                  - Name: flac-suffix
+                    Value: .flac
+
             #!Join [":",["arn:aws:sqs",!Ref Region, !Ref AccountID, !Join ["-", [!Ref QueueName, !Ref Environment]]]]
             
