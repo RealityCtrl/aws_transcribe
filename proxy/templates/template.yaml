@@ -1,10 +1,10 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: >
-    AWS Serverless Application
-
-    Sample SAM Template for AWS Serverless Application
+Description: Lambda getting notifications from sqs with S3 busket access
 
 Parameters:
+  QName:
+    Description: name of SQS queue to be polled
+    Type: String
   Locale:
     Description: locale for vocab
     Type: String
@@ -20,6 +20,9 @@ Parameters:
       - 'it-IT'
   InputS3Bucket:
     Description: S3 bucket that notification are coming from for permissions
+    Type: String
+  OutputS3Bucket:
+    Description: S3 bucket for output of transcription
     Type: String
   FName:
     Description: Lambda function name
@@ -72,6 +75,12 @@ Parameters:
     AllowedValues:
       - 'True'
       - 'False'
+  NumMessages:
+    Description: Batch size for SQS
+    Type: Number
+    Default: 10
+    MinValue: 0
+    MaxValue: 10
 
 Resources:
 
@@ -102,8 +111,10 @@ Resources:
                 Resource:
                   - !Join [":", ["arn:aws:s3::", !Join ["", [!Ref InputS3Bucket, "/"]]]]
                   - !Join [":", ["arn:aws:s3::", !Join ["", [!Ref InputS3Bucket, "/*"]]]]
+                  - !Join [":", ["arn:aws:s3::", !Join ["", [!Ref OutputS3Bucket, "/"]]]]
+                  - !Join [":", ["arn:aws:s3::", !Join ["", [!Ref OutputS3Bucket, "/*"]]]]
         -
-          PolicyName: "Transcribe-vocab-creator"
+          PolicyName: "Transcribe-start-access"
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
@@ -112,6 +123,16 @@ Resources:
                 Action:  "transcribe:*"
                 Resource:
                   - "*"
+        -
+          PolicyName: !Join ["-", [!Ref QName, "sqs-receive"]]
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              -
+                Effect: "Allow"
+                Action: "sqs:ReceiveMessage"
+                Resource:
+                  - !Join [":", ["arn:aws:sqs", !Ref Region, !Ref Account, !Ref QName]]
 
   TranscribeFunction:
     Type: "AWS::Lambda::Function"
@@ -127,19 +148,27 @@ Resources:
           vocab: !Ref VocabName
           speakerdetection: !Ref SpeakerDetection
           channelseperation: !Ref ChannelSeperation
+          output: !Ref OutputS3Bucket
       Role: !GetAtt LambdaRole.Arn
       MemorySize: !Ref Memory
       Timeout: !Ref ExcTime
       ReservedConcurrentExecutions: !Ref ConcurrentExecutions
+
+  EventSourceMapping:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      EventSourceArn: !Join [":", ["arn:aws:sqs", !Ref Region, !Ref Account, !Ref Qname]]
+      FunctionName: !GetAtt TranscribeFunction.Arn
+      BatchSize: !Ref NumMessages
 
   TranscribeNotificationPermission:
     Type: "AWS::Lambda::Permission"
     Properties:
       Action: "lambda:InvokeFunction"
       FunctionName: !GetAtt TranscribeFunction.Arn
-      Principal: "s3.amazonaws.com"
+      Principal: "sqs.amazonaws.com"
       SourceAccount: !Ref Account
-      SourceArn: !Join [":", ["arn:aws:s3::", !Ref InputS3Bucket]]
+      SourceArn: !Join [":", ["arn:aws:sqs", !Ref Region, !Ref Account, !Ref Qname]]
 
 Outputs:
 

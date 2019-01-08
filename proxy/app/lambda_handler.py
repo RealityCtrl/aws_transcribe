@@ -27,7 +27,6 @@ def lambda_handler(event, context):
         'VocabularyName': vocab,
         'MaxSpeakerLabels': speakers,
         'ChannelIdentification': channel_ID
-
     }
     trans_helper = Helper(transcribe_client,config)
     trans_creator = Transcribe(trans_helper, event)

@@ -17,18 +17,33 @@ Resources:
     Properties: 
       BucketName: !Join [ "-", [ !Ref AppName, !Ref Environment ] ]
       NotificationConfiguration:
-        LambdaConfigurations:
-          - Event: s3:ObjectCreated:Put
-            Function: arn:aws:lambda:eu-west-1:838188513541:transcribe-vocab-creator-sndbx
+        QueueConfigurations:
+          - Event: s3:ObjectCreated:*
+            Queue: !Join [":", ["arn:aws:sqs", !Ref Region, !Ref Account, !Join ["-", [!Ref QueueName, !Ref Environment]]]]
             Filter:
               S3Key:
                 Rules:
                   - Name: mp4-suffix
                     Value: .mp4
+          - Event: s3:ObjectCreated:*
+            Queue: !Join [":", ["arn:aws:sqs", !Ref Region, !Ref Account, !Join ["-", [!Ref QueueName, !Ref Environment]]]]
+            Filter:
+              S3Key:
+                Rules:
                   - Name: mp3-suffix
                     Value: .mp3
+          - Event: s3:ObjectCreated:*
+            Queue: !Join [":", ["arn:aws:sqs", !Ref Region, !Ref Account, !Join ["-", [!Ref QueueName, !Ref Environment]]]]
+            Filter:
+              S3Key:
+                Rules:
                   - Name: wav-suffix
                     Value: .wav
+          - Event: s3:ObjectCreated:*
+            Queue: !Join [":", ["arn:aws:sqs", !Ref Region, !Ref Account, !Join ["-", [!Ref QueueName, !Ref Environment]]]]
+            Filter:
+              S3Key:
+                Rules:
                   - Name: flac-suffix
                     Value: .flac
 

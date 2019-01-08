@@ -1,5 +1,9 @@
 [
   {
+    "ParameterKey": "QName",
+    "ParameterValue": "transcribe-input-sndbx"
+  },
+  {
     "ParameterKey": "Locale",
     "ParameterValue": "en-GB"
   },
@@ -38,5 +42,10 @@
   {
     "ParameterKey": "ConcurrentExecutions",
     "ParameterValue": "10"
+  },
+  {
+    "ParameterKey": "NumMessages",
+    "ParameterValue": "10"
   }
+
 ]

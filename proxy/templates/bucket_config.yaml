@@ -7,7 +7,12 @@ Parameters:
     Type: String
 
 Resources:
-  MyBucket:
+  MyInputBucket:
     Type: AWS::S3::Bucket
     Properties: 
-      BucketName: !Join [ "-", [ !Ref AppName, !Ref Environment ] ]
+      BucketName: !Join [ "-", [ !Ref AppName, "input", !Ref Environment ] ]
+
+  MyOutputBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Join [ "-", [ !Ref AppName, "output", !Ref Environment ] ]

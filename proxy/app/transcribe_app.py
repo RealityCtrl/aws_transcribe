@@ -18,7 +18,7 @@ class Transcribe:
         try:
             response = self.trans_helper.start_transcription(bucket, name, file_type)
         except ClientError as ex:
-            if ex['Error']['Code'] == 'LimitExceededException':
+            if ex.response['Error']['Code'] == 'LimitExceededException':
                 sleep(15)
                 return self.submit_transcription(bucket, name, file_type)
             else:

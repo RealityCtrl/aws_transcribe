@@ -1,0 +1,18 @@
+[
+  {
+    "ParameterKey": "AppName",
+    "ParameterValue": "transcribe-input"
+  },
+  {
+    "ParameterKey": "Environment",
+    "ParameterValue": "sndbx"
+  }, 
+  {
+    "ParameterKey": "UseDeadLetterQueue",
+    "ParameterValue": "true"
+  },
+  {
+	"ParameterKey": "ReceiveMessageWaitTime",
+	"ParameterValue": "20"
+  }
+]

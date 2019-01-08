@@ -12,8 +12,8 @@
 	"ParameterValue":"838188513541"
   },
   {
-	"ParameterKey":"LambdaName",
-	"ParameterValue":"transcribe-proxy-sndbx"
+	"ParameterKey":"QueueName",
+	"ParameterValue":"transcribe-input"
   },
   {
 	"ParameterKey":"Region",
